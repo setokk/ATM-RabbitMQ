@@ -34,7 +34,7 @@ public class RequestManager {
                 .build();
 
         channel.basicPublish(Protocol.REQUEST_EXCHANGE_NAME,
-                "",
+                ipAddress,
                 props,
                 request.getBytes(StandardCharsets.UTF_8));
     }

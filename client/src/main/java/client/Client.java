@@ -34,7 +34,42 @@ public class Client {
         // from the corresponding exchanges
         String ipAddress = InetAddress.getLocalHost().getHostName();
         channel.queueBind(Protocol.REPLY_QUEUE_NAME, Protocol.REPLY_EXCHANGE_NAME, ipAddress);
-        channel.queueBind(Protocol.REQUEST_QUEUE_NAME, Protocol.REQUEST_EXCHANGE_NAME, ipAddress);
+        channel.queueBind(Protocol.REQUEST_QUEUE_NAME, Protocol.REQUEST_EXCHANGE_NAME, "");
+
+        channel.basicConsume(Protocol.REPLY_QUEUE_NAME, new DefaultConsumer(channel) {
+            @Override
+            public void handleDelivery(String consumerTag,
+                                       Envelope envelope,
+                                       AMQP.BasicProperties properties,
+                                       byte[] body) {
+                String response = new String(body, StandardCharsets.UTF_8);
+                Number result;
+
+                boolean isBalance = false;
+                if (response.contains(".")) {
+                    result = Double.parseDouble(response);
+                    isBalance = true;
+                }
+                else {
+                    result = Integer.parseInt(response);
+                }
+
+                var message = "";
+                if (isBalance)
+                    message = "Balance is " + result.doubleValue();
+                else
+                    message = switch (result.intValue()) {
+                        case StatusCode.OK -> "Successful!";
+                        case StatusCode.BAD_REQUEST -> "Request body is invalid...";
+                        case StatusCode.USER_NOT_FOUND -> "User was not found...";
+                        case StatusCode.INSUFFICIENT_BALANCE -> "Insufficient balance...";
+                        default -> "Unrecognized status code";
+                    };
+
+                System.out.println("Status: " + message);
+                Client.isConsumeComplete = true;
+            }
+        });
 
         while (true) {
             var rm = new RequestManager(channel, ipAddress);
@@ -60,38 +95,6 @@ public class Client {
             }
             rm.send(request);
 
-            // Consume server message
-            channel.basicConsume(Protocol.REPLY_QUEUE_NAME, new DefaultConsumer(channel) {
-                @Override
-                public void handleDelivery(String consumerTag,
-                                           Envelope envelope,
-                                           AMQP.BasicProperties properties,
-                                           byte[] body) {
-                    String response = new String(body, StandardCharsets.UTF_8);
-                    Number result;
-                    if (response.contains("."))
-                        result = Double.parseDouble(response);
-                    else
-                        result = Integer.parseInt(response);
-
-                    var message = "";
-
-                    if (code == Protocol.BALANCE)
-                        message = "Balance is " + result.doubleValue();
-                    else
-                        message = switch (result.intValue()) {
-                            case StatusCode.OK -> "Successful!";
-                            case StatusCode.BAD_REQUEST -> "Request body is invalid...";
-                            case StatusCode.USER_NOT_FOUND -> "User was not found...";
-                            case StatusCode.INSUFFICIENT_BALANCE -> "Insufficient balance...";
-                            default -> "Unrecognized status code";
-                        };
-
-                    System.out.println("Status: " + message);
-                    Client.isConsumeComplete = true;
-                }
-            });
-
             waitForConsumeCompletion();
 
             System.out.println("Enter c to continue, otherwise enter any other key if you wish to exit...");
@@ -102,9 +105,10 @@ public class Client {
     }
 
     private static void waitForConsumeCompletion() {
-        while (!isConsumeComplete) {
+        while (!Client.isConsumeComplete) {
             try {
                 Thread.sleep(100);
+                System.out.println("Still not complete");
             } catch (InterruptedException e) {
                 System.err.println("Error while waiting for consume completion: Main Thread interrupted!");
                 System.exit(1);
