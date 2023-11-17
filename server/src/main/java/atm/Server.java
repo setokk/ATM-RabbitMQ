@@ -7,6 +7,8 @@ import atm.db.DBConfig;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
 
 import static atm.service.Protocol.*;
@@ -16,17 +18,20 @@ public class Server {
             new DBConfig("jdbc:postgresql://db:5432/atm",
                     "postgres", "root!238Ji*");
     public static void main(String[] args)
-            throws IOException, TimeoutException, SQLException
+            throws TimeoutException, SQLException
     {
         var db = new DatabaseDriver(DB_CONFIG);
         db.init();
+
+        ExecutorService service = Executors.newVirtualThreadPerTaskExecutor();
 
         ConnectionFactory factory = new ConnectionFactory();
         factory.setHost("rabbitmq");
         factory.setPort(5672);
 
-        Connection conn = factory.newConnection();
-        while (true) {
+
+        try {
+            Connection conn = factory.newConnection();
             Channel channel = conn.createChannel();
 
             // Declare queues
@@ -43,15 +48,11 @@ public class Server {
             channel.queueBind(REPLY_QUEUE_NAME, REPLY_EXCHANGE_NAME, "");
             channel.queueBind(REQUEST_QUEUE_NAME, REQUEST_EXCHANGE_NAME, "");
 
-            channel.basicConsume(REQUEST_QUEUE_NAME, new DefaultConsumer(channel) {
-                @Override
-                public void handleDelivery(String consumerTag,
-                                           Envelope envelope,
-                                           AMQP.BasicProperties properties,
-                                           byte[] body) {
-                    Thread.ofVirtual().start(new ClientConnection(channel, properties.getHeaders(), body));
-                }
-            });
+            channel.basicConsume(REQUEST_QUEUE_NAME, new MultiThreadedConsumer(channel, service));
+        } catch (IOException e) {
+            System.err.println("Problem connecting to server");
+            e.printStackTrace();
         }
+
     }
 }
