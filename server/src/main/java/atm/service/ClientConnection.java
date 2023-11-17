@@ -28,14 +28,17 @@ public class ClientConnection implements Runnable {
     @Override
     public void run() {
         try {
-            final String message = new String(body, StandardCharsets.UTF_8);
-            final String error =
-            ClientData data = Protocol.processRequest(message);
+            final String clientMessage = new String(body, StandardCharsets.UTF_8);
+            final String error = "Error status code " + StatusCode.BAD_REQUEST + ". "
+                    + "There is a problem with your request syntax. "
+                    + "Correct syntax: <code: int [0-2]>,<userID: int [positive]>,<amount: double [positive]>.";
+
+            ClientData data = Protocol.processRequest(clientMessage);
             if (data.hasError()) {
                 channel.basicPublish(REPLY_EXCHANGE_NAME,
                         ipAddress,
                         null,
-                        message.getBytes(StandardCharsets.UTF_8));
+                        error.getBytes(StandardCharsets.UTF_8));
                 channel.close();
             }
 
@@ -49,20 +52,26 @@ public class ClientConnection implements Runnable {
                     channel.basicPublish(REPLY_EXCHANGE_NAME,
                             ipAddress,
                             null,
-                            message.getBytes(StandardCharsets.UTF_8));
+                            String.valueOf(balance).getBytes(StandardCharsets.UTF_8));
                 }
                 case Protocol.WITHDRAW -> {
                     int status = db.withdraw(data.getUserID(), data.getAmount());
-                    output.println(status);
+                    channel.basicPublish(REPLY_EXCHANGE_NAME,
+                            ipAddress,
+                            null,
+                            String.valueOf(status).getBytes(StandardCharsets.UTF_8));
                 }
                 case Protocol.DEPOSIT -> {
                     int status = db.deposit(data.getUserID(), data.getAmount());
-                    output.println(status);
+                    channel.basicPublish(REPLY_EXCHANGE_NAME,
+                            ipAddress,
+                            null,
+                            String.valueOf(status).getBytes(StandardCharsets.UTF_8));
                 }
             }
 
             // Close client socket (stateless)
-            clientSocket.close();
+            channel.close();
         }
         catch (Exception e) {
             throw new RuntimeException(e);
