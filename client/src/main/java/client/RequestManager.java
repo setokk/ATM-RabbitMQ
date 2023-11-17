@@ -24,7 +24,7 @@ public class RequestManager {
         this.ipAddress = ipAddress;
     }
 
-    public void send(String request) {
+    public void send(String request) throws IOException {
         Map<String, Object> headers = new HashMap<>(1);
         headers.put("ip_address", ipAddress);
 

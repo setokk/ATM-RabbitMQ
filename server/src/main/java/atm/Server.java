@@ -13,7 +13,7 @@ import static atm.service.Protocol.*;
 
 public class Server {
     public static final DBConfig DB_CONFIG =
-            new DBConfig("jdbc:postgresql://bankdb:5432/atm",
+            new DBConfig("jdbc:postgresql://db:5432/atm",
                     "postgres", "root!238Ji*");
     public static void main(String[] args)
             throws IOException, TimeoutException, SQLException

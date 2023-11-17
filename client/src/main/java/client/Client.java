@@ -10,9 +10,10 @@ import java.util.Scanner;
 import java.util.concurrent.TimeoutException;
 
 public class Client {
+    private static volatile boolean isConsumeComplete = false;
+
     public static void main(String[] args)
-            throws IOException, TimeoutException
-    {
+            throws IOException, TimeoutException {
         ConnectionFactory factory = new ConnectionFactory();
         factory.setHost("rabbitmq");
         factory.setPort(5672);
@@ -36,7 +37,8 @@ public class Client {
         channel.queueBind(Protocol.REQUEST_QUEUE_NAME, Protocol.REQUEST_EXCHANGE_NAME, ipAddress);
 
         while (true) {
-            var rm = new RequestManager(socket);
+            var rm = new RequestManager(channel, ipAddress);
+            Client.isConsumeComplete = false;
 
             // Show menu and get code
             int code = menu();
@@ -86,12 +88,27 @@ public class Client {
                         };
 
                     System.out.println("Status: " + message);
-                    System.out.println("Enter c to continue, otherwise enter any other key if you wish to exit...");
-                    var answer = new Scanner(System.in).nextLine();
-                    if (!answer.equalsIgnoreCase("c"))
-                        break;
+                    Client.isConsumeComplete = true;
                 }
             });
+
+            waitForConsumeCompletion();
+
+            System.out.println("Enter c to continue, otherwise enter any other key if you wish to exit...");
+            var answer = new Scanner(System.in).nextLine();
+            if (!answer.equalsIgnoreCase("c"))
+                break;
+        }
+    }
+
+    private static void waitForConsumeCompletion() {
+        while (!isConsumeComplete) {
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                System.err.println("Error while waiting for consume completion: Main Thread interrupted!");
+                System.exit(1);
+            }
         }
     }
 

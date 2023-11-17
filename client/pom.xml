@@ -35,7 +35,7 @@
                         <manifest>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib/</classpathPrefix>
-                            <mainClass>atm.Server</mainClass>
+                            <mainClass>client.Client</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
