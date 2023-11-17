@@ -1,8 +1,8 @@
-package db;
+package atm.db;
 
 /**
  * Class is used for providing the DatabaseDriver class with appropriate
- * atm.db configs, thus implementing dependency injection for easier testing
+ * atm.atm.db configs, thus implementing dependency injection for easier testing
  */
 public class DBConfig {
     private final String URL;

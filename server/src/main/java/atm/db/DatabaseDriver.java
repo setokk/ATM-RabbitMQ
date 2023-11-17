@@ -1,6 +1,6 @@
-package db;
+package atm.db;
 
-import service.StatusCode;
+import atm.service.StatusCode;
 
 import java.sql.DriverManager;
 import java.sql.SQLException;

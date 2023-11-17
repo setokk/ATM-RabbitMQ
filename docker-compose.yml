@@ -1,0 +1,26 @@
+version: "3.8"
+services:
+  rabbitmq:
+    image: rabbitmq
+    ports:
+      - "5672:5672"
+  db:
+    image: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "root!238Ji*"
+      POSTGRES_DB: "atm"
+  server:
+    build:
+      context: ./ # Context is root because of parent directory copy issues (wait-for-it.sh)
+      dockerfile: server/Dockerfile
+    depends_on:
+      - db
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    tty: true
+    stdin_open: true
