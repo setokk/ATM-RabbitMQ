@@ -49,7 +49,7 @@ public class Server {
                                            Envelope envelope,
                                            AMQP.BasicProperties properties,
                                            byte[] body) {
-                    Thread.ofVirtual().start(new ClientConnection(channel, headers, body));
+                    Thread.ofVirtual().start(new ClientConnection(channel, properties.getHeaders(), body));
                 }
             });
         }
