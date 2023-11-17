@@ -14,13 +14,16 @@ services:
       POSTGRES_DB: "atm"
   server:
     build:
-      context: ./ # Context is root because of parent directory copy issues (wait-for-it.sh)
-      dockerfile: server/Dockerfile
+      context: ./server # Context is root because of parent directory copy issues (wait-for-it.sh)
+      dockerfile: Dockerfile
     depends_on:
       - db
+      - rabbitmq
   client:
     build:
       context: ./client
       dockerfile: Dockerfile
+    depends_on:
+      - server
     tty: true
     stdin_open: true

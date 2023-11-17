@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.jdk</groupId>
-    <artifactId>ATM-RabbitMQ-Server</artifactId>
+    <artifactId>ATM-RabbitMQ-Client</artifactId>
     <version>1.0</version>
 
     <properties>
@@ -14,12 +14,6 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
     <dependencies>
-        <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-            <version>42.6.0</version>
-            <scope>runtime</scope>
-        </dependency>
         <dependency>
             <groupId>com.rabbitmq</groupId>
             <artifactId>amqp-client</artifactId>
