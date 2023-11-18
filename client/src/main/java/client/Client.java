@@ -36,7 +36,8 @@ public class Client {
         channel.queueBind(Protocol.REPLY_QUEUE_NAME, Protocol.REPLY_EXCHANGE_NAME, ipAddress);
         channel.queueBind(Protocol.REQUEST_QUEUE_NAME, Protocol.REQUEST_EXCHANGE_NAME, "");
 
-        channel.basicConsume(Protocol.REPLY_QUEUE_NAME, new DefaultConsumer(channel) {
+        boolean autoAck = true;
+        channel.basicConsume(Protocol.REPLY_QUEUE_NAME, autoAck, new DefaultConsumer(channel) {
             @Override
             public void handleDelivery(String consumerTag,
                                        Envelope envelope,
