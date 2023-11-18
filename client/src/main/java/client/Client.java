@@ -31,9 +31,9 @@ public class Client {
         // Bind queues to exchanges.
         // That means that each queue will be interested in messages
         // from the corresponding exchanges
-        String ipAddress = InetAddress.getLocalHost().getHostName();
+
+        // Bind reply queue to reply exchange
         channel.queueBind(Protocol.REPLY_QUEUE_NAME, Protocol.REPLY_EXCHANGE_NAME, ipAddress);
-        channel.queueBind(Protocol.REQUEST_QUEUE_NAME, Protocol.REQUEST_EXCHANGE_NAME, "");
 
         boolean autoAck = true;
         channel.basicConsume(Protocol.REPLY_QUEUE_NAME, autoAck, new DefaultConsumer(channel) {
@@ -72,7 +72,9 @@ public class Client {
         });
 
         while (true) {
+            String ipAddress = InetAddress.getLocalHost().getHostName();
             var rm = new RequestManager(channel, ipAddress);
+
             Client.isConsumeComplete = false;
 
             // Show menu and get code

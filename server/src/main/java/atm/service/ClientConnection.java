@@ -24,7 +24,6 @@ public class ClientConnection implements Runnable {
     @Override
     public void run() {
         try {
-            System.out.println("Processing request from: " + ipAddress);
             final String clientMessage = new String(body, StandardCharsets.UTF_8);
             final String error = "Error status code " + StatusCode.BAD_REQUEST + ". "
                     + "There is a problem with your request syntax. "

@@ -45,9 +45,7 @@ public class MultiThreadedConsumer extends DefaultConsumer {
         if (headers != null && headers.containsKey("ip_address"))
             ipAddress = (String) headers.get("ip_address");
 
-        // Bind reply queue to reply exchange
-        replyChannel.queueBind(REPLY_QUEUE_NAME, REPLY_EXCHANGE_NAME, ipAddress);
-
+        System.out.println("Processing request from: " + ipAddress);
         service.execute(new ClientConnection(replyChannel, ipAddress, body));
     }
 }
