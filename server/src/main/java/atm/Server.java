@@ -48,7 +48,8 @@ public class Server {
             channel.queueBind(REPLY_QUEUE_NAME, REPLY_EXCHANGE_NAME, "");
             channel.queueBind(REQUEST_QUEUE_NAME, REQUEST_EXCHANGE_NAME, "");
 
-            channel.basicConsume(REQUEST_QUEUE_NAME, new MultiThreadedConsumer(channel, service));
+            boolean autoAck = true;
+            channel.basicConsume(REQUEST_QUEUE_NAME, autoAck, new MultiThreadedConsumer(channel, service));
         } catch (IOException e) {
             System.err.println("Problem connecting to server");
             e.printStackTrace();
