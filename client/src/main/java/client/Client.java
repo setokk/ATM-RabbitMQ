@@ -10,8 +10,6 @@ import java.util.Scanner;
 import java.util.concurrent.TimeoutException;
 
 public class Client {
-    private static volatile boolean isConsumeComplete = false;
-
     public static void main(String[] args)
             throws IOException, TimeoutException {
         ConnectionFactory factory = new ConnectionFactory();
@@ -32,7 +30,8 @@ public class Client {
         // That means that each queue will be interested in messages
         // from the corresponding exchanges
 
-        // Bind reply queue to reply exchange
+        // Bind reply queue to reply exchange (ip address as binding key)
+        String ipAddress = InetAddress.getLocalHost().getHostName();
         channel.queueBind(Protocol.REPLY_QUEUE_NAME, Protocol.REPLY_EXCHANGE_NAME, ipAddress);
 
         boolean autoAck = true;
@@ -67,55 +66,46 @@ public class Client {
                     };
 
                 System.out.println("Status: " + message);
-                Client.isConsumeComplete = true;
+
+                System.out.println("Enter c to continue, otherwise enter any other key if you wish to exit...");
+                var answer = new Scanner(System.in).nextLine();
+                if (!answer.equalsIgnoreCase("c"))
+                    System.exit(0);
+
+                prepareAndSendRequest();
             }
         });
 
-        while (true) {
-            String ipAddress = InetAddress.getLocalHost().getHostName();
-            var rm = new RequestManager(channel, ipAddress);
-
-            Client.isConsumeComplete = false;
-
-            // Show menu and get code
-            int code = menu();
-            clear_terminal();
-
-            var request = "";
-            if (code == Protocol.BALANCE) {
-                request = code + ",1,1";
-            }
-            else {
-                // Get amount if code is not balance
-                double amount;
-                do {
-                    System.out.print("Enter a non negative amount: ");
-                    Scanner in = new Scanner(System.in);
-                    amount = in.nextDouble();
-                } while (amount < 0);
-                request = code + ",1," + amount;
-            }
-            rm.send(request);
-
-            waitForConsumeCompletion();
-
-            System.out.println("Enter c to continue, otherwise enter any other key if you wish to exit...");
-            var answer = new Scanner(System.in).nextLine();
-            if (!answer.equalsIgnoreCase("c"))
-                break;
-        }
+        prepareAndSendRequest();
     }
 
-    private static void waitForConsumeCompletion() {
-        while (!Client.isConsumeComplete) {
-            try {
-                Thread.sleep(100);
-                System.out.println("Still not complete");
-            } catch (InterruptedException e) {
-                System.err.println("Error while waiting for consume completion: Main Thread interrupted!");
-                System.exit(1);
-            }
+    public static void prepareAndSendRequest() {
+        // Run menu once.
+        // Since RabbitMQ runs asynchronously, we output results when they arrive.
+        // We don't wait for the results to arrive.
+        // So that's why we don't have a while loop
+        // We get the input again when the client wishes to continue again in the async call
+        var rm = new RequestManager(channel, ipAddress);
+
+        // Show menu and get code
+        int code = menu();
+        clear_terminal();
+
+        var request = "";
+        if (code == Protocol.BALANCE) {
+            request = code + ",1,1";
         }
+        else {
+            // Get amount if code is not balance
+            double amount;
+            do {
+                System.out.print("Enter a non negative amount: ");
+                Scanner in = new Scanner(System.in);
+                amount = in.nextDouble();
+            } while (amount < 0);
+            request = code + ",1," + amount;
+        }
+        rm.send(request);
     }
 
     public static int menu() {
