@@ -4,12 +4,22 @@ import com.rabbitmq.client.*;
 
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.Socket;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 import java.util.concurrent.TimeoutException;
 
 public class Client {
+    private static String IP_ADDRESS;
+
+    static {
+        try {
+            IP_ADDRESS = InetAddress.getLocalHost().getHostName();
+        } catch (UnknownHostException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static void main(String[] args)
             throws IOException, TimeoutException {
         ConnectionFactory factory = new ConnectionFactory();
@@ -31,8 +41,7 @@ public class Client {
         // from the corresponding exchanges
 
         // Bind reply queue to reply exchange (ip address as binding key)
-        String ipAddress = InetAddress.getLocalHost().getHostName();
-        channel.queueBind(Protocol.REPLY_QUEUE_NAME, Protocol.REPLY_EXCHANGE_NAME, ipAddress);
+        channel.queueBind(Protocol.REPLY_QUEUE_NAME, Protocol.REPLY_EXCHANGE_NAME, IP_ADDRESS);
 
         boolean autoAck = true;
         channel.basicConsume(Protocol.REPLY_QUEUE_NAME, autoAck, new DefaultConsumer(channel) {
@@ -40,7 +49,7 @@ public class Client {
             public void handleDelivery(String consumerTag,
                                        Envelope envelope,
                                        AMQP.BasicProperties properties,
-                                       byte[] body) {
+                                       byte[] body) throws IOException {
                 String response = new String(body, StandardCharsets.UTF_8);
                 Number result;
 
@@ -72,20 +81,20 @@ public class Client {
                 if (!answer.equalsIgnoreCase("c"))
                     System.exit(0);
 
-                prepareAndSendRequest();
+                prepareAndSendRequest(channel);
             }
         });
 
-        prepareAndSendRequest();
+        prepareAndSendRequest(channel);
     }
 
-    public static void prepareAndSendRequest() {
+    public static void prepareAndSendRequest(Channel channel) throws IOException {
         // Run menu once.
         // Since RabbitMQ runs asynchronously, we output results when they arrive.
         // We don't wait for the results to arrive.
         // So that's why we don't have a while loop
         // We get the input again when the client wishes to continue again in the async call
-        var rm = new RequestManager(channel, ipAddress);
+        var rm = new RequestManager(channel, IP_ADDRESS);
 
         // Show menu and get code
         int code = menu();

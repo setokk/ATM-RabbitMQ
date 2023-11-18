@@ -48,4 +48,9 @@ public class MultiThreadedConsumer extends DefaultConsumer {
         System.out.println("Processing request from: " + ipAddress);
         service.execute(new ClientConnection(replyChannel, ipAddress, body));
     }
+
+    @Override
+    public void handleConsumeOk(String consumerTag) {
+        System.out.println("Consumer subscribed successfully with tag: " + consumerTag);
+    }
 }

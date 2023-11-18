@@ -23,8 +23,6 @@ public class Server {
         var db = new DatabaseDriver(DB_CONFIG);
         db.init();
 
-        ExecutorService service = Executors.newVirtualThreadPerTaskExecutor();
-
         ConnectionFactory factory = new ConnectionFactory();
         factory.setHost("rabbitmq");
         factory.setPort(5672);
@@ -46,6 +44,7 @@ public class Server {
             channel.queueBind(REQUEST_QUEUE_NAME, REQUEST_EXCHANGE_NAME, "");
 
             boolean autoAck = true;
+            ExecutorService service = Executors.newVirtualThreadPerTaskExecutor();
             channel.basicConsume(REQUEST_QUEUE_NAME,
                     autoAck,
                     new MultiThreadedConsumer(conn, channel, service));
