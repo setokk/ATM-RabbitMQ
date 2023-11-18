@@ -17,11 +17,10 @@ public class ClientConnection implements Runnable {
     private final byte[] body;
 
     public ClientConnection(Channel channel,
-                            Map<String, Object> headers,
+                            String ipAddress,
                             byte[] body) {
         this.channel = channel;
-        if (headers != null && headers.containsKey("ip_address"))
-            this.ipAddress = (String) headers.get("ip_address");
+        this.ipAddress = ipAddress;
         this.body = body;
     }
 

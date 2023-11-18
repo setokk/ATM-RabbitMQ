@@ -39,17 +39,18 @@ public class Server {
             channel.queueDeclare(REPLY_QUEUE_NAME, false, false, false, null);
 
             // Declare exchanges
-            channel.exchangeDeclare(REQUEST_EXCHANGE_NAME, BuiltinExchangeType.DIRECT);
+            channel.exchangeDeclare(REQUEST_EXCHANGE_NAME, BuiltinExchangeType.FANOUT);
             channel.exchangeDeclare(REPLY_EXCHANGE_NAME, BuiltinExchangeType.DIRECT);
 
             // Bind queues to exchanges.
             // That means that each queue will be interested in messages
             // from the corresponding exchanges
-            channel.queueBind(REPLY_QUEUE_NAME, REPLY_EXCHANGE_NAME, "");
             channel.queueBind(REQUEST_QUEUE_NAME, REQUEST_EXCHANGE_NAME, "");
 
             boolean autoAck = true;
-            channel.basicConsume(REQUEST_QUEUE_NAME, autoAck, new MultiThreadedConsumer(channel, service));
+            channel.basicConsume(REQUEST_QUEUE_NAME,
+                    autoAck,
+                    new MultiThreadedConsumer(conn, channel, service));
         } catch (IOException e) {
             System.err.println("Problem connecting to server");
             e.printStackTrace();

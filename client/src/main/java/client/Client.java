@@ -26,7 +26,7 @@ public class Client {
         channel.queueDeclare(Protocol.REPLY_QUEUE_NAME, false, false, false, null);
 
         // Declare exchanges
-        channel.exchangeDeclare(Protocol.REQUEST_EXCHANGE_NAME, BuiltinExchangeType.DIRECT);
+        channel.exchangeDeclare(Protocol.REQUEST_EXCHANGE_NAME, BuiltinExchangeType.FANOUT);
         channel.exchangeDeclare(Protocol.REPLY_EXCHANGE_NAME, BuiltinExchangeType.DIRECT);
 
         // Bind queues to exchanges.
