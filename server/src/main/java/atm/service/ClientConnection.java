@@ -4,22 +4,19 @@ import atm.Server;
 import atm.db.DatabaseDriver;
 import com.rabbitmq.client.Channel;
 
-import java.io.*;
-import java.net.Socket;
 import java.nio.charset.StandardCharsets;
-import java.util.Map;
 
 import static atm.service.Protocol.REPLY_EXCHANGE_NAME;
 
 public class ClientConnection implements Runnable {
-    private final Channel channel;
+    private final Channel replyChannel;
     private String ipAddress;
     private final byte[] body;
 
-    public ClientConnection(Channel channel,
+    public ClientConnection(Channel replyChannel,
                             String ipAddress,
                             byte[] body) {
-        this.channel = channel;
+        this.replyChannel = replyChannel;
         this.ipAddress = ipAddress;
         this.body = body;
     }
@@ -35,11 +32,11 @@ public class ClientConnection implements Runnable {
 
             ClientData data = Protocol.processRequest(clientMessage);
             if (data.hasError()) {
-                channel.basicPublish(REPLY_EXCHANGE_NAME,
+                replyChannel.basicPublish(REPLY_EXCHANGE_NAME,
                         ipAddress,
                         null,
                         error.getBytes(StandardCharsets.UTF_8));
-                channel.close();
+                replyChannel.close();
             }
 
             // Get DB config and connect to DB (Dependency Injection)
@@ -49,21 +46,21 @@ public class ClientConnection implements Runnable {
             switch (data.getCode()) {
                 case Protocol.BALANCE -> {
                     double balance = db.balance(data.getUserID());
-                    channel.basicPublish(REPLY_EXCHANGE_NAME,
+                    replyChannel.basicPublish(REPLY_EXCHANGE_NAME,
                             ipAddress,
                             null,
                             String.valueOf(balance).getBytes(StandardCharsets.UTF_8));
                 }
                 case Protocol.WITHDRAW -> {
                     int status = db.withdraw(data.getUserID(), data.getAmount());
-                    channel.basicPublish(REPLY_EXCHANGE_NAME,
+                    replyChannel.basicPublish(REPLY_EXCHANGE_NAME,
                             ipAddress,
                             null,
                             String.valueOf(status).getBytes(StandardCharsets.UTF_8));
                 }
                 case Protocol.DEPOSIT -> {
                     int status = db.deposit(data.getUserID(), data.getAmount());
-                    channel.basicPublish(REPLY_EXCHANGE_NAME,
+                    replyChannel.basicPublish(REPLY_EXCHANGE_NAME,
                             ipAddress,
                             null,
                             String.valueOf(status).getBytes(StandardCharsets.UTF_8));
@@ -71,7 +68,7 @@ public class ClientConnection implements Runnable {
             }
 
             // Close client socket (stateless)
-            channel.close();
+            replyChannel.close();
         }
         catch (Exception e) {
             throw new RuntimeException(e);

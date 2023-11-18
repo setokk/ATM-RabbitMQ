@@ -21,8 +21,7 @@ public class Client {
         Connection conn = factory.newConnection();
         Channel channel = conn.createChannel();
 
-        // Declare queues
-        channel.queueDeclare(Protocol.REQUEST_QUEUE_NAME, false, false, false, null);
+        // Declare reply queue
         channel.queueDeclare(Protocol.REPLY_QUEUE_NAME, false, false, false, null);
 
         // Declare exchanges

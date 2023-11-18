@@ -42,11 +42,6 @@ public class Server {
             channel.exchangeDeclare(REQUEST_EXCHANGE_NAME, BuiltinExchangeType.FANOUT);
             channel.exchangeDeclare(REPLY_EXCHANGE_NAME, BuiltinExchangeType.DIRECT);
 
-            // Bind queues to exchanges.
-            // That means that each queue will be interested in messages
-            // from the corresponding exchanges
-            channel.queueBind(REQUEST_QUEUE_NAME, REQUEST_EXCHANGE_NAME, "");
-
             boolean autoAck = true;
             channel.basicConsume(REQUEST_QUEUE_NAME,
                     autoAck,
