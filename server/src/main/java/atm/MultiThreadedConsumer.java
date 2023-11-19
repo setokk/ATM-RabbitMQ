@@ -11,19 +11,12 @@ import static atm.service.Protocol.*;
 import static atm.service.Protocol.REQUEST_EXCHANGE_NAME;
 
 public class MultiThreadedConsumer extends DefaultConsumer {
-    private Connection conn;
-    private ExecutorService service;
-
-    public MultiThreadedConsumer(Channel channel) {
-        super(channel);
-    }
+    private final Connection conn;
 
     public MultiThreadedConsumer(Connection conn,
-                                 Channel channel,
-                                 ExecutorService service) {
+                                 Channel channel) {
         super(channel);
         this.conn = conn;
-        this.service = service;
     }
 
     @Override
@@ -31,7 +24,11 @@ public class MultiThreadedConsumer extends DefaultConsumer {
                                Envelope envelope,
                                AMQP.BasicProperties properties,
                                byte[] body) throws IOException {
+        System.out.println("Processing request");
+        this.getChannel().basicAck(envelope.getDeliveryTag(), false);
+
         Channel replyChannel = conn.createChannel();
+        System.out.println("Created channel");
 
         // Declare reply queue
         replyChannel.queueDeclare(REPLY_QUEUE_NAME, false, false, false, null);
@@ -39,14 +36,12 @@ public class MultiThreadedConsumer extends DefaultConsumer {
         // Declare reply exchange
         replyChannel.exchangeDeclare(REPLY_EXCHANGE_NAME, BuiltinExchangeType.DIRECT);
 
+        System.out.println("Getting headers");
         // Get the ip address sent by the client
-        String ipAddress = "";
         Map<String, Object> headers = properties.getHeaders();
-        if (headers != null && headers.containsKey("ip_address"))
-            ipAddress = (String) headers.get("ip_address");
+        String ipAddress = (String) headers.get("ip_address");
 
-        System.out.println("Processing request from: " + ipAddress);
-        service.execute(new ClientConnection(replyChannel, ipAddress, body));
+        ClientConnection.sendReply(replyChannel, ipAddress, body);
     }
 
     @Override

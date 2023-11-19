@@ -37,21 +37,19 @@ public class Server {
             channel.queueDeclare(REPLY_QUEUE_NAME, false, false, false, null);
 
             // Declare exchanges
-            channel.exchangeDeclare(REQUEST_EXCHANGE_NAME, BuiltinExchangeType.FANOUT);
+            channel.exchangeDeclare(REQUEST_EXCHANGE_NAME, BuiltinExchangeType.DIRECT);
             channel.exchangeDeclare(REPLY_EXCHANGE_NAME, BuiltinExchangeType.DIRECT);
 
-            // Bind request queue to request exchange (FANOUT)
-            channel.queueBind(REQUEST_QUEUE_NAME, REQUEST_EXCHANGE_NAME, "");
+            // Bind request queue to request exchange ("server" as binding key)
+            channel.queueBind(REQUEST_QUEUE_NAME, REQUEST_EXCHANGE_NAME, "server");
 
-            boolean autoAck = true;
-            ExecutorService service = Executors.newVirtualThreadPerTaskExecutor();
+            boolean autoAck = false;
             channel.basicConsume(REQUEST_QUEUE_NAME,
                     autoAck,
-                    new MultiThreadedConsumer(conn, channel, service));
+                    new MultiThreadedConsumer(conn, channel));
         } catch (IOException e) {
             System.err.println("Problem connecting to server");
             e.printStackTrace();
         }
-
     }
 }

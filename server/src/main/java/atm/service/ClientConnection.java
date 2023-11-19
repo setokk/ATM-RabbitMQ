@@ -8,21 +8,10 @@ import java.nio.charset.StandardCharsets;
 
 import static atm.service.Protocol.REPLY_EXCHANGE_NAME;
 
-public class ClientConnection implements Runnable {
-    private final Channel replyChannel;
-    private String ipAddress;
-    private final byte[] body;
-
-    public ClientConnection(Channel replyChannel,
-                            String ipAddress,
-                            byte[] body) {
-        this.replyChannel = replyChannel;
-        this.ipAddress = ipAddress;
-        this.body = body;
-    }
-
-    @Override
-    public void run() {
+public class ClientConnection {
+    public static void sendReply(Channel replyChannel,
+                                 String ipAddress,
+                                 byte[] body) {
         try {
             final String clientMessage = new String(body, StandardCharsets.UTF_8);
             final String error = "Error status code " + StatusCode.BAD_REQUEST + ". "
@@ -37,6 +26,7 @@ public class ClientConnection implements Runnable {
                         error.getBytes(StandardCharsets.UTF_8));
                 replyChannel.close();
             }
+            System.out.println("Processed request");
 
             // Get DB config and connect to DB (Dependency Injection)
             var db = new DatabaseDriver(Server.DB_CONFIG);
@@ -65,12 +55,12 @@ public class ClientConnection implements Runnable {
                             String.valueOf(status).getBytes(StandardCharsets.UTF_8));
                 }
             }
-
+            System.out.println("Should have sent the message back");
             // Close client socket (stateless)
             replyChannel.close();
         }
         catch (Exception e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
     }
 }

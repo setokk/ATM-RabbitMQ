@@ -33,8 +33,9 @@ public class RequestManager {
                 .headers(headers)
                 .build();
 
+        // Publish with "server" as routing key
         channel.basicPublish(Protocol.REQUEST_EXCHANGE_NAME,
-                "",
+                "server",
                 props,
                 request.getBytes(StandardCharsets.UTF_8));
     }

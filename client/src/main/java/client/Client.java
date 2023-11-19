@@ -33,7 +33,7 @@ public class Client {
         channel.queueDeclare(Protocol.REPLY_QUEUE_NAME, false, false, false, null);
 
         // Declare exchanges
-        channel.exchangeDeclare(Protocol.REQUEST_EXCHANGE_NAME, BuiltinExchangeType.FANOUT);
+        channel.exchangeDeclare(Protocol.REQUEST_EXCHANGE_NAME, BuiltinExchangeType.DIRECT);
         channel.exchangeDeclare(Protocol.REPLY_EXCHANGE_NAME, BuiltinExchangeType.DIRECT);
 
         // Bind queues to exchanges.
@@ -43,14 +43,18 @@ public class Client {
         // Bind reply queue to reply exchange (ip address as binding key)
         channel.queueBind(Protocol.REPLY_QUEUE_NAME, Protocol.REPLY_EXCHANGE_NAME, IP_ADDRESS);
 
-        boolean autoAck = true;
-        channel.basicConsume(Protocol.REPLY_QUEUE_NAME, autoAck, new DefaultConsumer(channel) {
+        boolean autoAck = false;
+        channel.basicConsume(Protocol.REPLY_QUEUE_NAME,
+                autoAck,
+                new DefaultConsumer(channel) {
             @Override
             public void handleDelivery(String consumerTag,
                                        Envelope envelope,
                                        AMQP.BasicProperties properties,
                                        byte[] body) throws IOException {
                 String response = new String(body, StandardCharsets.UTF_8);
+                channel.basicAck(envelope.getDeliveryTag(), false);
+
                 Number result;
 
                 boolean isBalance = false;
