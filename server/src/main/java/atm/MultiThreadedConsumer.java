@@ -24,11 +24,10 @@ public class MultiThreadedConsumer extends DefaultConsumer {
                                Envelope envelope,
                                AMQP.BasicProperties properties,
                                byte[] body) throws IOException {
-        System.out.println("Processing request");
         this.getChannel().basicAck(envelope.getDeliveryTag(), false);
 
         Channel replyChannel = conn.createChannel();
-        System.out.println("Created channel");
+        System.out.println("Created channel: " + replyChannel);
 
         // Declare reply queue
         replyChannel.queueDeclare(REPLY_QUEUE_NAME, false, false, false, null);
@@ -36,7 +35,8 @@ public class MultiThreadedConsumer extends DefaultConsumer {
         // Declare reply exchange
         replyChannel.exchangeDeclare(REPLY_EXCHANGE_NAME, BuiltinExchangeType.DIRECT);
 
-        ClientConnection.sendReply(replyChannel, body);
+        // Start virtual thread to handle db connections, processing etc.
+        Thread.ofVirtual().start(new ClientConnection(replyChannel, body));
     }
 
     @Override

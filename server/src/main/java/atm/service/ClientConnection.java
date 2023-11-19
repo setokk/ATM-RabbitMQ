@@ -8,8 +8,17 @@ import java.nio.charset.StandardCharsets;
 
 import static atm.service.Protocol.REPLY_EXCHANGE_NAME;
 
-public class ClientConnection {
-    public static void sendReply(Channel replyChannel, byte[] body) {
+public class ClientConnection implements Runnable {
+    private final Channel replyChannel;
+    private final byte[] body;
+
+    public ClientConnection(Channel replyChannel, byte[] body) {
+        this.replyChannel = replyChannel;
+        this.body = body;
+    }
+
+    @Override
+    public void run() {
         try {
             final String clientMessage = new String(body, StandardCharsets.UTF_8);
             final String error = "Error status code " + StatusCode.BAD_REQUEST + ". "
@@ -54,7 +63,6 @@ public class ClientConnection {
                             String.valueOf(status).getBytes(StandardCharsets.UTF_8));
                 }
             }
-            System.out.println("Should have sent the message back");
 
             // Close channel for resource management
             replyChannel.close();
