@@ -36,12 +36,7 @@ public class MultiThreadedConsumer extends DefaultConsumer {
         // Declare reply exchange
         replyChannel.exchangeDeclare(REPLY_EXCHANGE_NAME, BuiltinExchangeType.DIRECT);
 
-        System.out.println("Getting headers");
-        // Get the ip address sent by the client
-        Map<String, Object> headers = properties.getHeaders();
-        String ipAddress = (String) headers.get("ip_address");
-
-        ClientConnection.sendReply(replyChannel, ipAddress, body);
+        ClientConnection.sendReply(replyChannel, body);
     }
 
     @Override

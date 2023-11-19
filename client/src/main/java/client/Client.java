@@ -118,7 +118,12 @@ public class Client {
             } while (amount < 0);
             request = code + ",1," + amount;
         }
-        rm.send(request);
+
+        // Send IP Address as well with the message so that the
+        // server can know which routing key to use
+        // Remember: for direct exchanges, routing_key=binding_key
+        // in order for the message to be delivered to the right client
+        rm.send(request + "," + Client.IP_ADDRESS);
     }
 
     public static int menu() {

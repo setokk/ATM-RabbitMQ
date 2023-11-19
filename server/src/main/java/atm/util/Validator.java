@@ -3,7 +3,7 @@ package atm.util;
 public class Validator {
     public static boolean isValidSyntax(String request) {
         String[] values = request.split(",");
-        if (values.length != 3)
+        if (values.length != 4)
             return false;
 
         // Check if client sent numbers

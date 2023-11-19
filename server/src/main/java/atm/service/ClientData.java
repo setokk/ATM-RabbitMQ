@@ -4,11 +4,16 @@ public class ClientData {
     private int code;
     private long userID;
     private double amount;
+    private String ipAddress;
 
-    public ClientData(int code, long userID, double amount) {
+    public ClientData(int code,
+                      long userID,
+                      double amount,
+                      String ipAddress) {
         this.code = code;
         this.userID = userID;
         this.amount = amount;
+        this.ipAddress = ipAddress;
     }
 
     public boolean hasError() {
@@ -16,7 +21,7 @@ public class ClientData {
     }
 
     public static ClientData error() {
-        return new ClientData(-1, -1, -1);
+        return new ClientData(-1, -1, -1, "");
     }
 
     public int getCode() {
@@ -30,4 +35,6 @@ public class ClientData {
     public double getAmount() {
         return amount;
     }
+
+    public String getIpAddress() { return ipAddress; }
 }

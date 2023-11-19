@@ -22,7 +22,8 @@ public class Protocol {
         int code = Integer.parseInt(values[0]);
         int userID = Integer.parseInt(values[1]);
         double amount = Double.parseDouble(values[2]);
+        String ipAddress = values[3];
 
-        return new ClientData(code, userID, amount);
+        return new ClientData(code, userID, amount, ipAddress);
     }
 }

@@ -25,18 +25,10 @@ public class RequestManager {
     }
 
     public void send(String request) throws IOException {
-        Map<String, Object> headers = new HashMap<>(1);
-        headers.put("ip_address", ipAddress);
-
-        AMQP.BasicProperties props = new AMQP.BasicProperties()
-                .builder()
-                .headers(headers)
-                .build();
-
         // Publish with "server" as routing key
         channel.basicPublish(Protocol.REQUEST_EXCHANGE_NAME,
                 "server",
-                props,
+                null,
                 request.getBytes(StandardCharsets.UTF_8));
     }
 }
