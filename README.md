@@ -2,7 +2,7 @@
 ATM-RabbitMQ for Distributed Systems course, University of Macedonia (UoM).
 
 ### What is it
-This is a project demonstrating the usage of RabbitMQ for client-server applications.
+This is a project demonstrating the usage of RabbitMQ in client-server applications.
 
 ### How it works
 It uses 2 queues to achieve this client-server functionality:
@@ -13,8 +13,8 @@ Both queues are binded to their corresponding **exchanges** (binding keys):
 - request_exchange (used by the client to forward messages to the request_queue).
 - reply_exchange (used by the server to forward messages to the reply_queue).
 
-Both exchanges are of <i>DIRECT</i> type. That means that for a message to be received by a consumer,
-the binding key of the consumer must be equal to the routing key of the producer when they publish a message.
+Both exchanges are of <b><i>DIRECT</i></b> type. That means that for a message to be received by a consumer,
+the binding key of the consumer must be equal to the routing key of the message.
 
 ### How does the server know where to send the reply
 The server does not know (RabbitMQ broker is responsible), but on top of the request body (userId, code, amount) it also receives the ip address of the client.
